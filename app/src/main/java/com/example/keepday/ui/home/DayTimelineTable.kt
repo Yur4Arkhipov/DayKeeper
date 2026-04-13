@@ -27,13 +27,12 @@ import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.keepday.domain.DayEvent
 
 @Composable
 fun TimelineTable(
     modifier: Modifier = Modifier,
-    viewModel: HomeScreenViewModel = hiltViewModel(),
+    events: List<DayEvent>,
     pixelsPerMinute: Float = 3.0f,
     onEventClick: (DayEvent) -> Unit = {}
 ) {
@@ -92,7 +91,7 @@ fun TimelineTable(
                 }
             }
 
-            viewModel.events.forEach { event ->
+            events.forEach { event ->
 
                 val topOffsetDp = with(density) {
                     (event.startMinute * pixelsPerMinute).toDp()
