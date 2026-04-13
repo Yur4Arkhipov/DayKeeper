@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 import java.util.Date
 import javax.inject.Inject
 
@@ -62,6 +64,33 @@ class HomeScreenViewModel @Inject constructor(
         val task = event.toTask()
         viewModelScope.launch {
             saveTaskUseCase(date = date, task = task)
+        }
+    }
+
+    fun importTasksFromJson(jsonString: String) {
+        try {
+            val jsonArray = JSONArray(jsonString)
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val id = jsonObject.getInt("id")
+                val dateStart = jsonObject.getString("date_start").toLong()
+                val dateFinish = jsonObject.getString("date_finish").toLong()
+                val name = jsonObject.getString("name")
+                val description = jsonObject.getString("description")
+
+                val task = com.example.keepday.domain.model.Task(
+                    id = id,
+                    dateStart = dateStart,
+                    dateFinish = dateFinish,
+                    name = name,
+                    description = description
+                )
+                viewModelScope.launch {
+                    saveTaskUseCase(date = Date(dateStart), task = task)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

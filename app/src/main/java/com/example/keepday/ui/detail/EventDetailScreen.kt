@@ -39,7 +39,6 @@ fun EventDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
-            .border(1.dp, Color.Red)
             .background(Color.Transparent)
     ) {
         Row(
