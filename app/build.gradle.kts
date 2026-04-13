@@ -65,7 +65,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
 
     // Calendar
-    implementation(libs.view)
+    implementation(libs.calendar.view)
 
     // Dagger Hilt
     implementation(libs.hilt.android)
@@ -76,6 +76,10 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+
+    // Icons
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     implementation(libs.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)

@@ -11,8 +11,10 @@ import com.kizitonwose.calendar.view.CalendarView
 import com.kizitonwose.calendar.view.MonthDayBinder
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.YearMonth
 import java.time.format.TextStyle
+import java.util.Date
 import java.util.Locale
 
 class CalendarViewManager(
@@ -65,7 +67,7 @@ class CalendarViewManager(
         container.textView.text = data.date.dayOfMonth.toString()
 
         val today = LocalDate.now()
-        val isSelected = viewModel.selectedDate.value == data.date
+        val isSelected = previousSelectedDate == data.date
 
         if (data.position == DayPosition.MonthDate) {
             container.textView.visibility = View.VISIBLE
@@ -109,7 +111,7 @@ class CalendarViewManager(
         }
 
         previousSelectedDate = date
-        viewModel.selectDate(date)
+        viewModel.onDateSelected(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()))
 
         calendarView.notifyDateChanged(date)
     }

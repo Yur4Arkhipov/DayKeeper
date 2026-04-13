@@ -64,7 +64,11 @@ room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 # Calendar
-view = { module = "com.kizitonwose.calendar:view", version.ref = "view" }
+calendar-view = { module = "com.kizitonwose.calendar:view", version.ref = "view" }
+
+# Icons
+androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

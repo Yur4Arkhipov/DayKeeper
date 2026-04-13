@@ -7,10 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.keepday.core.util.UiState
 import com.example.keepday.databinding.ActivityMainBinding
+import com.example.keepday.domain.model.DayEvent
+import com.example.keepday.ui.detail.EventDetailScreen
 import com.example.keepday.ui.home.CalendarViewManager
 import com.example.keepday.ui.home.HomeScreenViewModel
 import com.example.keepday.ui.home.TimelineTable
@@ -47,10 +50,19 @@ class MainActivity : AppCompatActivity() {
         binding.composeView.setContent {
             MaterialTheme {
                 val state by viewModel.uiState.collectAsState()
+                val selectedEvent = remember { mutableStateOf<DayEvent?>(null) }
 
-                if (state is UiState.Success) {
+                if (selectedEvent.value != null) {
+                    EventDetailScreen(
+                        event = selectedEvent.value!!,
+                        onBackClick = { selectedEvent.value = null }
+                    )
+                } else {
                     TimelineTable(
-                        events = (state as UiState.Success).data.events
+                        events = state.tasks,
+                        onEventClick = { event ->
+                            selectedEvent.value = event
+                        }
                     )
                 }
             }

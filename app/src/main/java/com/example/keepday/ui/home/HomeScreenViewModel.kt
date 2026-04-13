@@ -1,62 +1,80 @@
 package com.example.keepday.ui.home
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
-import com.example.keepday.core.util.UiState
-import com.example.keepday.domain.DayEvent
+import androidx.lifecycle.viewModelScope
+import com.example.keepday.domain.usecase.DeleteTaskUseCase
+import com.example.keepday.domain.usecase.GetDayDataUseCase
+import com.example.keepday.domain.usecase.ObserveSelectedDateUseCase
+import com.example.keepday.domain.usecase.SaveTaskUseCase
+import com.example.keepday.domain.usecase.SetSelectedDateUseCase
+import com.example.keepday.domain.model.DayEvent
+import com.example.keepday.domain.model.toDayEvent
+import com.example.keepday.domain.model.toTask
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import java.time.LocalDate
-import java.time.Month
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.util.Date
+import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-//    private val repository: Repository
-): ViewModel() {
+    observeSelectedDateUseCase: ObserveSelectedDateUseCase,
+    private val getDayDataUseCase: GetDayDataUseCase,
+    private val setSelectedDateUseCase: SetSelectedDateUseCase,
+    private val saveTaskUseCase: SaveTaskUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase
+) : ViewModel() {
 
-    val events = listOf(
-        DayEvent("1", LocalDate.now(), 9 * 60 + 30, 60, "Совещание", Color(0xFF4CAF50)),
-        DayEvent("2", LocalDate.now(), 11 * 60, 90, "Созвон с клиентом", Color(0xFF2196F3)),
-        DayEvent("3", LocalDate.now(), 12 * 60, 60, "Some task", Color(0xFFB18DF1)),
-        DayEvent("4", LocalDate.now(), 14 * 60 + 15, 45, "Обед", Color(0xFFFF9800)),
-        DayEvent("5", LocalDate.now(), 0 * 60 + 15, 15, "fff", Color(0xFFDAADE1)),
-        DayEvent("6", LocalDate.now(), 23 * 60 + 15, 15, "павп", Color(0xFFEEA9A4)),
+    private val selectedDate = observeSelectedDateUseCase()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<DayKeeperUiState> =
+        selectedDate
+            .flatMapLatest { selectedDate ->
+                getDayDataUseCase(selectedDate)
+                    .map { dayData ->
+                        DayKeeperUiState(
+                            selectedDate = selectedDate,
+                            tasks = dayData.map { task -> task.toDayEvent() },
+                            isLoading = false
+                        )
+                    }
+            }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                DayKeeperUiState(isLoading = true)
+            )
 
-        DayEvent("7", LocalDate.of(2026, Month.APRIL, 16), 23 * 60 + 15, 15, "павп", Color(0xFFEEA9A4)),
-    )
-
-    private val _selectedDate = MutableStateFlow(LocalDate.now())
-    val selectedDate: StateFlow<LocalDate> = _selectedDate
-
-    private val _uiState = MutableStateFlow<UiState<ScheduleUiData>>(UiState.Idle)
-    val uiState: StateFlow<UiState<ScheduleUiData>> = _uiState
-
-    init {
-        loadEvents(LocalDate.now())
-    }
-
-    private fun loadEvents(date: LocalDate = LocalDate.now()) {
-        _uiState.value = UiState.Loading
-        try {
-            val filteredEvents = events.filter { it.date == date }
-            val uiData = ScheduleUiData(events = filteredEvents, selectedDate = date)
-            _uiState.value = UiState.Success(uiData)
-        } catch (e: Exception) {
-            _uiState.value = UiState.Error(e.message ?: "Unknown error")
+    fun onDateSelected(date: Date) {
+        viewModelScope.launch {
+            setSelectedDateUseCase(date)
         }
     }
 
-    fun selectDate(date: LocalDate) {
-        _selectedDate.value = date
-        loadEvents(date)
+    fun saveEvent(event: DayEvent) {
+        val date = selectedDate.value
+        val task = event.toTask()
+        viewModelScope.launch {
+            saveTaskUseCase(date = date, task = task)
+        }
+    }
+
+    fun deleteTask(taskId: Int) {
+        viewModelScope.launch {
+            deleteTaskUseCase(taskId)
+        }
     }
 }
 
 
-data class ScheduleUiData(
-    val events: List<DayEvent> = emptyList(),
-    val selectedDate: LocalDate = LocalDate.now(),
+data class DayKeeperUiState(
+    val selectedDate: Date = Date(),
+    val tasks: List<DayEvent> = emptyList(),
+    val isLoading: Boolean = false
 )

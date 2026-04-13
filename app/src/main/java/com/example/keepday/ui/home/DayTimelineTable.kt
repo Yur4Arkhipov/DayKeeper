@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.keepday.domain.DayEvent
+import com.example.keepday.domain.model.DayEvent
 
 @Composable
 fun TimelineTable(
@@ -43,85 +43,78 @@ fun TimelineTable(
 
     val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = modifier
             .height(scrollHeightDp)
             .verticalScroll(scrollState)
             .nestedScroll(rememberNestedScrollInteropConnection())
     ) {
-
-        Box(
-            modifier = modifier
-                .height(scrollHeightDp)
-                .verticalScroll(scrollState)
-        ) {
-            Column {
-                repeat(24) { hour ->
-                    val hourHeightPx = 60f * pixelsPerMinute
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(with(density) { hourHeightPx.toDp() })
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(24.dp)
-                                .align(Alignment.TopStart),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "%02d:00".format(hour),
-                                modifier = Modifier
-                                    .width(60.dp)
-                                    .padding(end = 8.dp),
-                                textAlign = TextAlign.End,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.weight(1f),
-                                thickness = 1.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
-                        }
-                    }
-                }
-            }
-
-            events.forEach { event ->
-
-                val topOffsetDp = with(density) {
-                    (event.startMinute * pixelsPerMinute).toDp()
-                }
-
-                val heightDp = with(density) {
-                    (event.durationMinutes * pixelsPerMinute).toDp()
-                }
-
-                val minHeightToShowText = 40.dp
+        Column {
+            repeat(24) { hour ->
+                val hourHeightPx = 60f * pixelsPerMinute
 
                 Box(
                     modifier = Modifier
-                        .absoluteOffset(y = topOffsetDp)
-                        .padding(start = 64.dp, end = 8.dp)
                         .fillMaxWidth()
-                        .height(heightDp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(event.color)
-                        .clickable { onEventClick(event) }
+                        .height(with(density) { hourHeightPx.toDp() })
                 ) {
-                    if (heightDp >= minHeightToShowText) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(24.dp)
+                            .align(Alignment.TopStart),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = event.title,
-                            modifier = Modifier.padding(8.dp),
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            text = "%02d:00".format(hour),
+                            modifier = Modifier
+                                .width(60.dp)
+                                .padding(end = 8.dp),
+                            textAlign = TextAlign.End,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant
                         )
                     }
+                }
+            }
+        }
+
+        events.forEach { event ->
+
+            val topOffsetDp = with(density) {
+                (event.startMinute * pixelsPerMinute).toDp()
+            }
+
+            val heightDp = with(density) {
+                (event.durationMinutes * pixelsPerMinute).toDp()
+            }
+
+            val minHeightToShowText = 40.dp
+
+            Box(
+                modifier = Modifier
+                    .absoluteOffset(y = topOffsetDp)
+                    .padding(start = 64.dp, end = 8.dp)
+                    .fillMaxWidth()
+                    .height(heightDp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(event.color)
+                    .clickable { onEventClick(event) }
+            ) {
+                if (heightDp >= minHeightToShowText) {
+                    Text(
+                        text = event.title,
+                        modifier = Modifier.padding(8.dp),
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
