@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DayKeeper</string>
+    <string name="calendar">Calendar</string>
+    <string name="some_date">some date</string>
 </resources>
